@@ -9,9 +9,10 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowRight, Loader2 } from 'lucide-react'
+import { ArrowRight, Loader2, CheckCircle2 } from 'lucide-react'
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import EmailVerification from "@/components/email-verification"
 
 interface BusinessFormProps {
   utmSource?: string
@@ -23,6 +24,7 @@ interface BusinessFormProps {
 export default function BusinessForm({ utmSource, utmMedium, utmCampaign, onStepChange }: BusinessFormProps) {
   const [step, setStep] = useState(1)
   const router = useRouter()
+  const [isEmailVerified, setIsEmailVerified] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     firstName: "",
@@ -73,6 +75,9 @@ export default function BusinessForm({ utmSource, utmMedium, utmCampaign, onStep
     if (utmSource) formDataObj.append("utmSource", utmSource)
     if (utmMedium) formDataObj.append("utmMedium", utmMedium)
     if (utmCampaign) formDataObj.append("utmCampaign", utmCampaign)
+    
+    // Ajouter l'état de vérification de l'email
+    formDataObj.append("emailVerified", isEmailVerified.toString())
 
     try {
       await registerBusiness(formDataObj)
@@ -84,38 +89,90 @@ export default function BusinessForm({ utmSource, utmMedium, utmCampaign, onStep
     }
   }
 
-  const nextStep = () => setStep(step + 1)
-  const prevStep = () => setStep(step - 1)
+  const nextStep = () => {
+    if (step === 1 && !isEmailVerified) {
+      // S'arrêter pour vérifier l'email avant de passer à l'étape 2
+      setStep(1.5)
+    } else {
+      setStep(step + 1)
+    }
+  }
+  
+  const prevStep = () => {
+    if (step === 1.5) {
+      setStep(1)
+    } else {
+      setStep(step - 1)
+    }
+  }
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          {[1, 2, 3].map((stepNumber) => (
+  const handleEmailVerified = () => {
+    setIsEmailVerified(true)
+    setStep(2)
+  }
+
+  // Fonction pour afficher les étapes progressives
+  const renderProgressSteps = () => {
+    const totalSteps = 3
+    return (
+      <div className="flex items-center justify-between mb-6">
+        {Array.from({ length: totalSteps }).map((_, idx) => {
+          const stepNumber = idx + 1
+          const isActive = step >= stepNumber
+          const isCompleted = step > stepNumber
+
+          return (
             <div key={stepNumber} className="flex items-center flex-1">
               {stepNumber > 1 && (
-                <div 
-                  className={`flex-1 h-1 ${step >= stepNumber ? "bg-primary" : "bg-gray-300"}`}
+                <div
+                  className={`flex-1 h-1 ${
+                    isActive ? "bg-primary" : "bg-gray-300"
+                  }`}
                 />
               )}
-              <div className={`flex flex-col items-center ${stepNumber > 1 ? "ml-2" : ""}`}>
-                <div 
+              <div
+                className={`relative flex flex-col items-center ${
+                  stepNumber > 1 ? "ml-2" : ""
+                }`}
+              >
+                <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                    step >= stepNumber ? "bg-primary text-white" : "bg-gray-200 text-gray-500"
+                    isActive
+                      ? "bg-primary text-white"
+                      : "bg-gray-200 text-gray-500"
                   }`}
                 >
-                  {stepNumber}
+                  {isCompleted ? (
+                    <CheckCircle2 className="h-6 w-6" />
+                  ) : (
+                    stepNumber
+                  )}
                 </div>
+                <span className="text-xs mt-1 text-center">
+                  {stepNumber === 1
+                    ? "Identité"
+                    : stepNumber === 2
+                    ? "Entreprise"
+                    : "Paiement"}
+                </span>
               </div>
-              {stepNumber < 3 && (
-                <div 
-                  className={`flex-1 h-1 ${step > stepNumber ? "bg-primary" : "bg-gray-300"}`}
+              {stepNumber < totalSteps && (
+                <div
+                  className={`flex-1 h-1 ${
+                    step > stepNumber ? "bg-primary" : "bg-gray-300"
+                  }`}
                 />
               )}
             </div>
-          ))}
-        </div>
+          )
+        })}
       </div>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {step !== 1.5 && renderProgressSteps()}
 
       {step === 1 && (
         <div className="space-y-4">
@@ -152,6 +209,12 @@ export default function BusinessForm({ utmSource, utmMedium, utmCampaign, onStep
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
+            {isEmailVerified && (
+              <div className="flex items-center mt-1 text-green-600 text-sm">
+                <CheckCircle2 className="h-4 w-4 mr-1" />
+                Email vérifié
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -176,10 +239,24 @@ export default function BusinessForm({ utmSource, utmMedium, utmCampaign, onStep
             />
           </div>
 
-          <Button type="button" onClick={nextStep} className="w-full">
-            Continuer <ArrowRight className="ml-2 h-4 w-4" />
+          <Button 
+            type="button" 
+            onClick={nextStep} 
+            className="w-full"
+            disabled={!formData.email || !formData.firstName || !formData.lastName || !formData.companyName}
+          >
+            {isEmailVerified ? "Continuer" : "Vérifier l'email"} <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
+      )}
+
+      {/* Étape intermédiaire : Vérification d'email */}
+      {step === 1.5 && (
+        <EmailVerification 
+          email={formData.email} 
+          onVerified={handleEmailVerified} 
+          onBack={prevStep}
+        />
       )}
 
       {step === 2 && (
