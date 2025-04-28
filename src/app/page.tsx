@@ -10,7 +10,7 @@ export default function Home() {
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-2">
             <span className="font-bold text-2xl bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Catch Up
+              Catch Up!
             </span>
           </div>
           <nav className="hidden md:flex gap-8">
