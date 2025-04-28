@@ -17,8 +17,8 @@ const envSchema = z.object({
     .string()
     .url()
     .default("http://localhost:3002"),
-  NEXT_PUBLIC_EMAIL_USER: z.string().email().default("taha.tb3@gmail.com"),
-  NEXT_PUBLIC_EMAIL_PASS: z.string().default("domu orgr bgtr dqkt"),
+  NEXT_PUBLIC_EMAIL_USER: z.string().email().default("ifrahadnan61@gmail.com"),
+  NEXT_PUBLIC_EMAIL_PASS: z.string().default("jbhy ubfx jdas fxuy"),
   NEXT_PUBLIC_EMAIL_SERVICE_PROVIDER: z.string().default("gmail"),
   NEXT_PUBLIC_IS_EMAIL_VERIFICATION_REQUIRED: z.string().default("false"),
   JWT_SECRET: z.string().default("secret"),
