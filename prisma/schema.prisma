@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PROFESSIONAL
+  BUSINESS
+}
+
+enum Sector {
+  TECH
+  AGRO
+  COMMERCE
+  FINANCE
+  SANTE
+  EDUCATION
+  AUTRE
+}
+
+enum ProfessionalInterest {
+  MENTORAT
+  RESEAUTAGE
+  EMPLOI
+  FORMATION
+  AUTRE
+}
+
+enum CompanyNeed {
+  PRESENTATION_MARQUE
+  RESEAU_B2B
+  RECRUTEMENT
+  MARCHES
+  FOURNISSEURS
+  FINANCEMENT
+  AUTRE
+}
+
+enum CompanySize {
+  LESS_THAN_10
+  BETWEEN_10_50
+  BETWEEN_50_250
+  MORE_THAN_250
+}
+
+model Lead {
+  id            String    @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String    @unique
+  phone         String?
+  role          UserRole
+  sector        Sector
+  createdAt     DateTime  @default(now())
+  
+  // For professional leads
+  professionalInterests ProfessionalInterest[]
+  professionalChallenges String?
+  
+  // For business leads
+  companyName   String?
+  companySize   CompanySize?
+  companyNeeds  CompanyNeed[]
+  companyChallenges String?
+  
+  // For newsletter and trial registration
+  subscribedToNewsletter Boolean @default(false)
+  registeredForTrial Boolean @default(false)
+  registrationDate DateTime?
+  
+  // For tracking
+  referralSource String?
+  ipAddress String?
+  utmSource String?
+  utmMedium String?
+  utmCampaign String?
+}
