@@ -267,7 +267,7 @@ export default function Home() {
               </Link>
             </div>
             <p className="text-sm text-muted-foreground mt-4">
-              Aucun engagement, annulez à tout moment
+              Aucun engagement, annulez à tout moment.
             </p>
           </div>
         </div>
